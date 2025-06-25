@@ -3,6 +3,11 @@
 <div align="center">
 
 [![Go Report Card](https://goreportcard.com/badge/lydianpay/base58g)](https://goreportcard.com/report/lydianpay/base58)
+[![Maintainability](https://qlty.sh/badges/617a032c-59dc-41bd-ab15-5bb6846af8f8/maintainability.svg)](https://qlty.sh/gh/lydianpay/projects/base58)
+[![Code Coverage](https://qlty.sh/badges/617a032c-59dc-41bd-ab15-5bb6846af8f8/test_coverage.svg)](https://qlty.sh/gh/lydianpay/projects/base58)
+[![CodeQL](https://github.com/lydianpay/base58/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/lydianpay/base58/actions/workflows/github-code-scanning/codeql)
+
+
 
 </div>
 
