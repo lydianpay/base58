@@ -27,7 +27,7 @@ jobs:
       - name: Run tests
         run: go test ./... -coverprofile=coverage.out
 
-      - uses: qltysh/qlty-action/coverage@v1.0.0
+      - uses: qltysh/qlty-action/coverage@v2
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
           files: coverage.out
