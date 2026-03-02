@@ -8,6 +8,7 @@ const TestString2 = "bf764852-caf7-457c-85b2-b0210f0b0ec2 b85ecfb3-1eae-4b0a-94e
 const TestValue2 = "7QpECrvkAkFLNrKun6curM4gBndrwyjEZZqh8LbETw9YA4SvXNekBbryrjDsFTe1a4s6NjaWziYcmaDsoLzgy6VtNyLNG9HcKRFm"
 
 func TestAlphabetString(t *testing.T) {
+	// This check is to ensure no one accidentally adds/removes characters to the alphabet
 	if len(alphabet) != 58 {
 		t.Errorf("alphabet length should be 58. got %d", len(alphabet))
 	}

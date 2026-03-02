@@ -1,13 +1,14 @@
 package base58
 
+import "strings"
+
 // PrecalculatedMultiplier is the quotient of math.Log(256)/math.Log(58)
 const PrecalculatedMultiplier = 1.36565823731
 
-// TODO: add a test to ensure this is always 58 bytes
-var alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 // Encode requires a string as input and returns a base58 encoded string
-func Encode(input string) (output string) {
+func Encode(input string) string {
 
 	bytes := []byte(input)
 	inputLen := int(float64(len(bytes)) * PrecalculatedMultiplier)
@@ -29,9 +30,11 @@ func Encode(input string) (output string) {
 		maxPosition = position
 	}
 
+	var sb strings.Builder
+	sb.Grow(len(out))
 	for _, char := range out {
-		output += string(alphabet[char])
+		sb.WriteByte(alphabet[char])
 	}
 
-	return output
+	return sb.String()
 }
