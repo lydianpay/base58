@@ -1,26 +1,28 @@
 package base58
 
+import "strings"
+
 // PrecalculatedMultiplier is the quotient of math.Log(256)/math.Log(58)
 const PrecalculatedMultiplier = 1.36565823731
 
-// TODO: add a test to ensure this is always 58 bytes
-var alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 // Encode requires a string as input and returns a base58 encoded string
-func Encode(input string) (output string) {
+func Encode(input string) string {
 
-	inputLen := int(float64(len(input)) * PrecalculatedMultiplier)
+	bytes := []byte(input)
+	inputLen := int(float64(len(bytes)) * PrecalculatedMultiplier)
 
 	out := make([]byte, inputLen+1)
 
 	maxPosition := inputLen
 
-	// Loop over each character of the string
-	for _, character := range input {
+	// Loop over each byte of the input
+	for _, b := range bytes {
 		position := inputLen
 		// Starting at the end of the byte array, calculate the updated character
-		for bit := character; position > maxPosition || bit != 0; position-- {
-			bit = bit + 256*int32(out[position])
+		for bit := int(b); position > maxPosition || bit != 0; position-- {
+			bit = bit + 256*int(out[position])
 			// Set the remainder
 			out[position] = byte(bit % 58)
 			bit /= 58
@@ -28,9 +30,11 @@ func Encode(input string) (output string) {
 		maxPosition = position
 	}
 
+	var sb strings.Builder
+	sb.Grow(len(out))
 	for _, char := range out {
-		output += string(alphabet[char])
+		sb.WriteByte(alphabet[char])
 	}
 
-	return output
+	return sb.String()
 }
