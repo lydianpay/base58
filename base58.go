@@ -6,8 +6,8 @@ const PrecalculatedMultiplier = 1.36565823731
 // TODO: add a test to ensure this is always 58 bytes
 var alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
-// Encode requires a string as input and returns a base58 encoded string
-func Encode(input string) (output string) {
+// Encode requires a byte slice as input and returns a base58 encoded string
+func Encode(input []byte) (output string) {
 
 	inputLen := int(float64(len(input)) * PrecalculatedMultiplier)
 
@@ -15,12 +15,12 @@ func Encode(input string) (output string) {
 
 	maxPosition := inputLen
 
-	// Loop over each character of the string
-	for _, character := range input {
+	// Loop over each byte of the input
+	for _, b := range input {
 		position := inputLen
 		// Starting at the end of the byte array, calculate the updated character
-		for bit := character; position > maxPosition || bit != 0; position-- {
-			bit = bit + 256*int32(out[position])
+		for bit := int(b); position > maxPosition || bit != 0; position-- {
+			bit = bit + 256*int(out[position])
 			// Set the remainder
 			out[position] = byte(bit % 58)
 			bit /= 58

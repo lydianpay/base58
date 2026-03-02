@@ -24,13 +24,28 @@ func TestAlphabetString(t *testing.T) {
 }
 
 func TestEncode(t *testing.T) {
-	encoded := Encode(TestString1)
+	encoded := Encode([]byte(TestString1))
 	if encoded != TestValue1 {
 		t.Errorf("encoded value should be %s. got %s", TestValue1, encoded)
 	}
 
-	encoded = Encode(TestString2)
+	encoded = Encode([]byte(TestString2))
 	if encoded != TestValue2 {
 		t.Errorf("encoded value should be %s. got %s", TestValue2, encoded)
+	}
+}
+
+func TestEncodeRawBinary(t *testing.T) {
+	// Raw binary data with bytes > 127 that are invalid UTF-8
+	input := []byte{0x00, 0x01, 0xFF, 0xC0, 0x80, 0xDE, 0xAD}
+	encoded := Encode(input)
+	if encoded == "" {
+		t.Error("encoding raw binary data should not return an empty string")
+	}
+
+	// Encoding the same input twice should produce the same result
+	encoded2 := Encode(input)
+	if encoded != encoded2 {
+		t.Errorf("encoding should be deterministic. got %s and %s", encoded, encoded2)
 	}
 }
