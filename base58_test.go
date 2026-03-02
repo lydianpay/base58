@@ -24,12 +24,12 @@ func TestAlphabetString(t *testing.T) {
 }
 
 func TestEncode(t *testing.T) {
-	encoded := Encode([]byte(TestString1))
+	encoded := Encode(TestString1)
 	if encoded != TestValue1 {
 		t.Errorf("encoded value should be %s. got %s", TestValue1, encoded)
 	}
 
-	encoded = Encode([]byte(TestString2))
+	encoded = Encode(TestString2)
 	if encoded != TestValue2 {
 		t.Errorf("encoded value should be %s. got %s", TestValue2, encoded)
 	}
@@ -37,7 +37,7 @@ func TestEncode(t *testing.T) {
 
 func TestEncodeRawBinary(t *testing.T) {
 	// Raw binary data with bytes > 127 that are invalid UTF-8
-	input := []byte{0x00, 0x01, 0xFF, 0xC0, 0x80, 0xDE, 0xAD}
+	input := string([]byte{0x00, 0x01, 0xFF, 0xC0, 0x80, 0xDE, 0xAD})
 	encoded := Encode(input)
 	if encoded == "" {
 		t.Error("encoding raw binary data should not return an empty string")
