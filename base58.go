@@ -38,3 +38,19 @@ func Encode(input string) string {
 
 	return sb.String()
 }
+
+// EncodeWithLeadingZeros encodes a string to Base58, preserving leading zero bytes
+// as '1' characters. This is required for protocols like Bitcoin (Base58Check)
+// where leading zero bytes in the input are significant.
+func EncodeWithLeadingZeros(input string) string {
+	encoded := Encode(input)
+
+	for _, b := range []byte(input) {
+		if b != 0 {
+			break
+		}
+		encoded = string(alphabet[0]) + encoded
+	}
+
+	return encoded
+}
