@@ -32,7 +32,7 @@ func Encode(input string) string {
 
 	var sb strings.Builder
 	sb.Grow(len(out))
-	for _, char := range out {
+	for _, char := range out[maxPosition+1:] {
 		sb.WriteByte(alphabet[char])
 	}
 
