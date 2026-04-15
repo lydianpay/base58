@@ -36,6 +36,86 @@ func TestEncode(t *testing.T) {
 	}
 }
 
+func TestEncodeWithLeadingZeros(t *testing.T) {
+	// Input with no leading zeros — should match Encode
+	input := TestString1
+	encoded := EncodeWithLeadingZeros(input)
+	expected := Encode(input)
+	if encoded != expected {
+		t.Errorf("Expected '%s' (same as Encode), got '%s'", expected, encoded)
+	}
+}
+
+func TestEncodeWithLeadingZerosPreservesZeros(t *testing.T) {
+	// Input with one leading zero byte
+	input := string([]byte{0x00, 0x01, 0x02, 0x03})
+	encoded := EncodeWithLeadingZeros(input)
+	if encoded == "" {
+		t.Fatalf("Expected non-empty encoded string")
+	}
+	if encoded[0] != '1' {
+		t.Errorf("Expected leading '1' for leading zero byte, got '%c'", encoded[0])
+	}
+}
+
+func TestEncodeWithLeadingZerosMultipleZeros(t *testing.T) {
+	// Input with three leading zero bytes
+	input := string([]byte{0x00, 0x00, 0x00, 0x01, 0x02})
+	encoded := EncodeWithLeadingZeros(input)
+	if len(encoded) < 3 {
+		t.Fatalf("Expected at least 3 characters, got %d", len(encoded))
+	}
+	for i := 0; i < 3; i++ {
+		if encoded[i] != '1' {
+			t.Errorf("Expected '1' at position %d for leading zero byte, got '%c'", i, encoded[i])
+		}
+	}
+}
+
+func TestEncodeWithLeadingZerosAllZeros(t *testing.T) {
+	// Input of all zero bytes — each zero byte adds a leading '1',
+	// plus Encode produces its own output for the zero value
+	input := string([]byte{0x00, 0x00, 0x00})
+	encoded := EncodeWithLeadingZeros(input)
+	if len(encoded) < 3 {
+		t.Errorf("Expected at least 3 leading '1' characters for three zero bytes, got '%s'", encoded)
+	}
+	for i := 0; i < 3; i++ {
+		if encoded[i] != '1' {
+			t.Errorf("Expected '1' at position %d, got '%c'", i, encoded[i])
+		}
+	}
+}
+
+func TestEncodeWithLeadingZerosEmpty(t *testing.T) {
+	// Empty input — Encode("") produces a base output, no leading zeros to add
+	encoded := EncodeWithLeadingZeros("")
+	encodedBase := Encode("")
+	if encoded != encodedBase {
+		t.Errorf("Expected same as Encode for empty input, got '%s' vs '%s'", encoded, encodedBase)
+	}
+}
+
+func TestEncodeWithLeadingZerosDeterministic(t *testing.T) {
+	input := string([]byte{0x00, 0xFF, 0xAB, 0xCD})
+	encoded1 := EncodeWithLeadingZeros(input)
+	encoded2 := EncodeWithLeadingZeros(input)
+	if encoded1 != encoded2 {
+		t.Errorf("Encoding should be deterministic, got '%s' and '%s'", encoded1, encoded2)
+	}
+}
+
+func TestEncodeWithLeadingZerosDiffersFromEncode(t *testing.T) {
+	// For input with leading zeros, EncodeWithLeadingZeros should produce
+	// a longer string than Encode since it preserves the zeros
+	input := string([]byte{0x00, 0x00, 0x01, 0x02, 0x03})
+	withZeros := EncodeWithLeadingZeros(input)
+	without := Encode(input)
+	if len(withZeros) <= len(without) {
+		t.Errorf("EncodeWithLeadingZeros should be longer than Encode for input with leading zeros. Got '%s' vs '%s'", withZeros, without)
+	}
+}
+
 func TestEncodeRawBinary(t *testing.T) {
 	// Raw binary data with bytes > 127 that are invalid UTF-8
 	input := string([]byte{0x00, 0x01, 0xFF, 0xC0, 0x80, 0xDE, 0xAD})
