@@ -36,6 +36,16 @@ func TestEncode(t *testing.T) {
 	}
 }
 
+func TestEncodeNoSpuriousLeadingOnes(t *testing.T) {
+	// Short input that doesn't fill the output buffer — previously
+	// produced spurious leading '1's from unused buffer positions
+	input := string([]byte{0x41, 0x09, 0xa6})
+	encoded := Encode(input)
+	if len(encoded) > 0 && encoded[0] == '1' && input[0] != 0x00 {
+		t.Errorf("Encode produced spurious leading '1' for non-zero input: '%s'", encoded)
+	}
+}
+
 func TestEncodeWithLeadingZeros(t *testing.T) {
 	// Input with no leading zeros — should match Encode
 	input := TestString1
