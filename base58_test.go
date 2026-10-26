@@ -1,6 +1,10 @@
 package base58
 
-import "testing"
+import (
+	"encoding/hex"
+	"strings"
+	"testing"
+)
 
 const TestString1 = "Yo Cuz!"
 const TestValue1 = "4Pa7379MLc"
@@ -138,5 +142,89 @@ func TestEncodeRawBinary(t *testing.T) {
 	encoded2 := Encode(input)
 	if encoded != encoded2 {
 		t.Errorf("encoding should be deterministic. got %s and %s", encoded, encoded2)
+	}
+}
+
+func TestDecode(t *testing.T) {
+	decoded, err := Decode(TestValue1)
+	if err != nil {
+		t.Fatalf("Decode(%s) errored: %v", TestValue1, err)
+	}
+	if decoded != TestString1 {
+		t.Errorf("decoded value should be %q. got %q", TestString1, decoded)
+	}
+
+	decoded, err = Decode(TestValue2)
+	if err != nil {
+		t.Fatalf("Decode(%s) errored: %v", TestValue2, err)
+	}
+	if decoded != TestString2 {
+		t.Errorf("decoded value should be %q. got %q", TestString2, decoded)
+	}
+}
+
+func TestDecodeSolanaKeys(t *testing.T) {
+	keys := map[string]string{
+		"11111111111111111111111111111111":             "0000000000000000000000000000000000000000000000000000000000000000",
+		"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "c6fa7af3bedbad3a3d65f36aabc97431b1bbe4c2d2f6e0e47ca60203452f5d61",
+		"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA":  "06ddf6e1d765a193d9cbe146ceeb79ac1cb485ed5f5b37913a8cf5857eff00a9",
+		"TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnwqTCSdcq7dc":  "06ddf6e1ee758fde18425dbce46ccddab61afc4d83b90d2905d3b4d3705c9c13",
+		"ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL": "8c97258f4e2489f1bb3d1029148e0d830b5a1399daff1084048e7bd8dbe9f859",
+	}
+	for encoded, expectedHex := range keys {
+		decoded, err := Decode(encoded)
+		if err != nil {
+			t.Errorf("Decode(%s) errored: %v", encoded, err)
+			continue
+		}
+		if got := hex.EncodeToString([]byte(decoded)); got != expectedHex {
+			t.Errorf("Decode(%s) should be %s. got %s", encoded, expectedHex, got)
+		}
+		if len(decoded) != 32 {
+			t.Errorf("Decode(%s) should be 32 bytes. got %d", encoded, len(decoded))
+		}
+		if reencoded := EncodeWithLeadingZeros(decoded); reencoded != encoded {
+			t.Errorf("EncodeWithLeadingZeros(Decode(%s)) should round-trip. got %s", encoded, reencoded)
+		}
+	}
+}
+
+func TestDecodeRoundTripsLeadingZeros(t *testing.T) {
+	inputs := []string{
+		string([]byte{0x00, 0x01, 0x02, 0x03}),
+		string([]byte{0x00, 0x00, 0x00, 0x01, 0x02}),
+		string([]byte{0x00, 0x00, 0x00}),
+		string([]byte{0x00, 0xFF, 0xAB, 0xCD}),
+		string([]byte{0x41, 0x09, 0xa6}),
+		strings.Repeat("\x00", 32),
+		strings.Repeat("\xff", 32),
+	}
+	for _, input := range inputs {
+		decoded, err := Decode(EncodeWithLeadingZeros(input))
+		if err != nil {
+			t.Errorf("Decode errored for %x: %v", input, err)
+			continue
+		}
+		if decoded != input {
+			t.Errorf("Decode(EncodeWithLeadingZeros(%x)) should round-trip. got %x", input, decoded)
+		}
+	}
+}
+
+func TestDecodeEmpty(t *testing.T) {
+	decoded, err := Decode("")
+	if err != nil {
+		t.Fatalf("Decode of an empty string errored: %v", err)
+	}
+	if decoded != "" {
+		t.Errorf("Decode of an empty string should be empty. got %q", decoded)
+	}
+}
+
+func TestDecodeRejectsCharactersOutsideTheAlphabet(t *testing.T) {
+	for _, input := range []string{"0", "4Pa7379MLO", "4Pa7379MLI", "l", "4Pa 7379MLc"} {
+		if decoded, err := Decode(input); err == nil {
+			t.Errorf("Decode(%q) should error. got %q", input, decoded)
+		}
 	}
 }

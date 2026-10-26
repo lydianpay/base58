@@ -1,9 +1,15 @@
 package base58
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // PrecalculatedMultiplier is the quotient of math.Log(256)/math.Log(58)
 const PrecalculatedMultiplier = 1.36565823731
+
+// PrecalculatedDivisor is the quotient of math.Log(58)/math.Log(256), rounded up
+const PrecalculatedDivisor = 0.73225
 
 const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
@@ -53,4 +59,38 @@ func EncodeWithLeadingZeros(input string) string {
 	}
 
 	return encoded
+}
+
+func Decode(input string) (string, error) {
+	zeros := 0
+	for zeros < len(input) && input[zeros] == alphabet[0] {
+		zeros++
+	}
+
+	outputLen := int(float64(len(input))*PrecalculatedDivisor) + 1
+	out := make([]byte, outputLen)
+
+	maxPosition := outputLen
+
+	for index := zeros; index < len(input); index++ {
+		digit := strings.IndexByte(alphabet, input[index])
+		if digit < 0 {
+			return "", fmt.Errorf("invalid base58 character %q at position %d", input[index], index)
+		}
+		position := outputLen - 1
+		for ; position >= maxPosition || digit != 0; position-- {
+			digit += 58 * int(out[position])
+			out[position] = byte(digit % 256)
+			digit /= 256
+		}
+		maxPosition = position + 1
+	}
+
+	decoded := make([]byte, 0, zeros+outputLen-maxPosition)
+	for range zeros {
+		decoded = append(decoded, 0)
+	}
+	decoded = append(decoded, out[maxPosition:]...)
+
+	return string(decoded), nil
 }
